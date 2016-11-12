@@ -26,7 +26,7 @@ if(confirm("Are you sure to delete it?"))
 	
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<!-- For login user -->
-	<form id="form1" name="form1" method="post" action="/simple-spring-with-security/delete">
+	<form id="form1" name="form1" method="post" action="delete">
 	    <table width="500" border="1" cellspacing="0" cellpadding="0" style="border:1 px; border-collapse:collapse">
 	        <tr>
 	        	<td width="50">Select</td>
