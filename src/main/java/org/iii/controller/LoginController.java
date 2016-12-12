@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,11 +34,54 @@ public class LoginController {
 		
 		ModelAndView model = new ModelAndView();
 
-		model.setViewName("index");
+		model.setViewName("login2");
 		return model;
 
 	}
 	
+	//--------------------------------------------------------
+	// Login
+	//--------------------------------------------------------
+	
+	@RequestMapping(value = "/customLogin", method = RequestMethod.POST)
+	public ModelAndView facebook(HttpServletRequest request) {
+
+		
+		String password = request.getParameter("password");
+		String security_num = request.getParameter("security_num");
+		String accountid = request.getParameter("accountid");
+
+		loginService.customLogin(accountid, password, security_num, request);
+		
+		
+		//-----------------------------------------------------------
+		ModelAndView model = new ModelAndView();
+		model.addObject("title", "Spring Security Login Form - Database Authentication");
+		model.addObject("message", "This is default page!!!");
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (!(auth instanceof AnonymousAuthenticationToken)) {
+			UserDetails userDetail = (UserDetails) auth.getPrincipal();
+			for (GrantedAuthority authority : userDetail.getAuthorities()) {
+	            if (authority.getAuthority().equals("ROLE_GOV"))
+	            {
+	    			//List alluserinfo = loginService.getallUserinfo();
+	    			//model.addObject("alluserinfo", alluserinfo);
+	    			model.addObject("type", "ROLE_GOV");
+	            }
+	            else
+	            {
+	            	//String username = userDetail.getUsername();
+	    			//String useremail = loginService.getUserEmail(username);
+	    			//model.addObject("useremail", useremail);
+	            	model.addObject("type", authority.getAuthority());
+	            }
+	        }
+		}
+		
+		model.setViewName("hello");
+		return model;
+	}
 	/*
 	@RequestMapping(value = { "/login", "/" }, method = RequestMethod.GET)
 	public ModelAndView login(@RequestParam(value = "error", required = false) String error) throws IOException{ 
@@ -47,6 +93,25 @@ public class LoginController {
 		return model;
 	}
 	*/
+	
+	@RequestMapping(value = "/login2", method = RequestMethod.GET)
+	public ModelAndView login2(@RequestParam(value = "error", required = false) String error,
+			@RequestParam(value = "logout", required = false) String logout) {
+
+		ModelAndView model = new ModelAndView();
+		if (error != null) {
+			model.addObject("error", "Invalid username and password!");
+		}
+
+		if (logout != null) {
+			model.addObject("msg", "You've been logged out successfully.");
+		}
+
+		model.setViewName("login2");
+		return model;
+
+	}
+	
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public ModelAndView login(@RequestParam(value = "error", required = false) String error,
 			@RequestParam(value = "logout", required = false) String logout) {
@@ -71,7 +136,6 @@ public class LoginController {
 		return "redirect:/login";
 	}
 	
-	//������
 	@RequestMapping(value = "/login_page", method = RequestMethod.GET)
 	public ModelAndView login_page(HttpServletRequest request)
 			throws UnsupportedEncodingException, ParseException {

@@ -24,6 +24,8 @@
 	<context:component-scan base-package="org.iii.controller" />
 	<context:component-scan base-package="org.iii.service" />
 	<context:component-scan base-package="org.iii.repository" />
+	<context:component-scan base-package="org.iii.recaptcha" />
+	<context:component-scan base-package="org.iii.handler" />
  		
 	<annotation-driven />
 	

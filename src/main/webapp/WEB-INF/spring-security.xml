@@ -1,47 +1,65 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/security"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:security="http://www.springframework.org/schema/security"
-	xsi:schemaLocation="http://www.springframework.org/schema/mvc
-		http://www.springframework.org/schema/mvc/spring-mvc.xsd
-		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context 
-		http://www.springframework.org/schema/context/spring-context.xsd
-		http://www.springframework.org/schema/security 
-		http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+			http://www.springframework.org/schema/security 
+			http://www.springframework.org/schema/security/spring-security-4.0.xsd"
+	xmlns:p="http://www.springframework.org/schema/p">
 
 
     <!--  <security:global-method-security secured-annotations="enabled" />  -->
-	<http auto-config="true" use-expressions="true">  
+	<security:http auto-config="true" use-expressions="true">  
 
-		<intercept-url pattern="/member/" access="isAuthenticated()"  />
-		<intercept-url pattern="/USER/**" access="hasRole('ROLE_USER')"  />   		
-		<intercept-url pattern="/ADMIN/**" access="hasRole('ROLE_ADMIN')"  />  
+		<security:intercept-url pattern="/member/" access="isAuthenticated()"  />
+		<security:intercept-url pattern="/USER/**" access="hasRole('ROLE_USER')"  />   		
+		<security:intercept-url pattern="/ADMIN/**" access="hasRole('ROLE_ADMIN')"  />  
 		
-		<form-login 
-		    login-page="/login" 
+		<security:form-login 
+		    login-page="/login2" 
 		    default-target-url="/login_page" 
 		    login-processing-url="/j_spring_security_check"
-			authentication-failure-url="/login?error" 
-			username-parameter="username"
-			password-parameter="password" />
+			authentication-failure-url="/login2?error" 
+			username-parameter="accountid"
+			password-parameter="password" 
+			authentication-success-handler-ref="LoginSucessHandler"
+			authentication-failure-handler-ref="LoginFailureHandler" />
 			
-		<logout logout-url="/j_spring_security_logout" logout-success-url="/login?logout"  />
-		<security:session-management invalid-session-url="/login" ></security:session-management>
-		<csrf disabled="false"/>
-	</http>
+		<!-- <security:logout logout-url="/j_spring_security_logout" logout-success-url="/login2?logout"  /> -->
+		<security:logout logout-success-url="/login2?logout" />
+		<security:session-management invalid-session-url="/login2" ></security:session-management>
+		
+		<security:custom-filter ref="captchaCaptureFilter"
+			before="FORM_LOGIN_FILTER" />
+		<security:custom-filter ref="captchaVerifierFilter"
+			after="FORM_LOGIN_FILTER" />
+		
+		<security:csrf disabled="true" />
+	</security:http>
+	
+	<!-- For AuthenticationHandler -->
+	<bean id="LoginSucessHandler" class="org.iii.handler.LoginSucessHandler" />
+	<bean id="LoginFailureHandler" class="org.iii.handler.LoginFailureHandler" />
+
+	<!-- For capturing CAPTCHA fields -->
+	<bean id="captchaCaptureFilter" class="org.iii.recaptcha.CaptchaCaptureFilter" />
+
+	<!-- For verifying CAPTCHA fields -->
+	<!-- Private key is assigned by the reCATPCHA service -->
+	<bean id="captchaVerifierFilter" class="org.iii.recaptcha.CaptchaVerifierFilter"
+		p:useProxy="false" p:proxyPort="" p:proxyHost="" p:failureUrl="/login2?error=true"
+		p:captchaCaptureFilter-ref="captchaCaptureFilter" p:secretKey="6Lf5DCETAAAAAFEXx9_46qagt1IwhzIxh73HHomZ" />
+
+		
 	<!-- Select users and user_roles from database -->
-	<authentication-manager>
+	<authentication-manager alias="authenticationManager"
+		xmlns="http://www.springframework.org/schema/security">
 		<authentication-provider>
-			<jdbc-user-service data-source-ref="dataSource"	users-by-username-query=
-					"select username,password, enabled from users where username=?"
-				authorities-by-username-query=
-					"select username, role from user_roles where username =?" />
+			<jdbc-user-service data-source-ref="dataSource"	users-by-username-query="select accountid,password, enabled from users where accountid= LOWER(?)"
+				authorities-by-username-query="select accountid, role from users where accountid =LOWER(?)  " />
 		   <password-encoder hash="md5"/>  
 		</authentication-provider>
 	</authentication-manager>
+	
+
 	 
-</beans:beans>
+</beans>

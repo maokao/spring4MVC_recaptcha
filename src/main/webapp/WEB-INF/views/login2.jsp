@@ -1,8 +1,14 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@ page import="net.tanesha.recaptcha.ReCaptcha" %>
+<%@ page import="net.tanesha.recaptcha.ReCaptchaFactory" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@page session="true"%>
 <html>
 <head>
 <title>Login Page</title>
+<script src="https://www.google.com/recaptcha/api.js"></script>
 <style>
 .error {
 	padding: 15px;
@@ -35,7 +41,7 @@
 }
 </style>
 </head>
-<body onload='document.loginForm.username.focus();'>
+<body>
 
 	<h1>Spring Security Login Form (Database Authentication)</h1>
 
@@ -49,12 +55,10 @@
 		<c:if test="${not empty msg}">
 			<div class="msg">${msg}</div>
 		</c:if>
-<!--  
-		<form name='loginForm'
-			action="<c:url value='/j_spring_security_check' />" method='POST'>
--->
-		<form name='loginForm'
-			action="<c:url value='/customLogin' />" method='POST'>
+ 
+ 		<c:url value="/j_spring_security_check" var="loginUrl" />
+		<form name='loginForm' action="${loginUrl}" method='POST'>
+
 			<table>
 				<tr>
 					<td>User:</td>
@@ -64,15 +68,21 @@
 					<td>Password:</td>
 					<td><input type='password' name='password' /></td>
 				</tr>
+				<div class="form-group" style="text-align: -webkit-center;">
+	 					<div class="g-recaptcha" 
+	 						data-sitekey="6Lf5DCETAAAAAB7JENwxkc4FcFfMbEcAN3SUvgKq"					
+	 						style="margin: 0px auto;">
+	 					</div>
+                    </div>
 				<tr>
 					<td colspan='2'><input name="submit" type="submit"
 						value="submit" /></td>
 				</tr>
 			</table>
-
+<!--  
 			<input type="hidden" name="${_csrf.parameterName}"
 				value="${_csrf.token}" />
-
+-->
 		</form>
 	</div>
 
